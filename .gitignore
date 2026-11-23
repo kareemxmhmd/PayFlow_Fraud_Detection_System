@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & linting
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# Machine learning artifacts & models
+artifacts/*
+
+# Jupyter Checkpoints
+.ipynb_checkpoints/
+
+# data
+data/raw/*
+data/processed/*
+
+# MLflow local tracking store
+mlflow_store/
+mlflow.db*
+mlruns/
+mlartifacts/
