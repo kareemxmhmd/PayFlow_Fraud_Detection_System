@@ -21,8 +21,6 @@ FX_TO_USD: dict[str, float] = {
     "SAR": 3.75,
     "EGP": 48.5,
 }
-CHARGEBACK_LAG_DAYS = 7
-BAYESIAN_SMOOTHING_M = 20
 
 # 4. Model Feature Schema
 NUMERIC_COLS: list[str] = [
