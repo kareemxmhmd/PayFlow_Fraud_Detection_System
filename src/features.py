@@ -53,40 +53,6 @@ def add_user_features(df: pd.DataFrame) -> pd.DataFrame:
 
      return df
 
-def add_merchant_features(
-          df: pd.DataFrame,
-          train_end: pd.Timestamp,
-          lag_days: int = CHARGEBACK_LAG_DAYS,
-          m: int = BAYESIAN_SMOOTHING_M
-) -> pd.DataFrame:
-     
-     df = df.sort_values(["timestamp", "transaction_id"]).reset_index(drop=True)
-
-     global_prior = df.loc[df["timestamp"] < train_end, TARGET_COL].mean()
-
-     m_hist = df[["merchant_id", "timestamp", TARGET_COL]].copy()
-     m_hist["m_tx_cum"] = m_hist.groupby("merchant_id").cumcount() + 1
-     m_hist["m_fraud_cum"] = m_hist.groupby("merchant_id")[TARGET_COL].cumsum()
-     m_hist = m_hist.drop_duplicates(subset=["merchant_id", "timestamp"], keep="last")
-
-     df["ts_minus_lag"] = df["timestamp"] - pd.Timedelta(days=lag_days)
-
-     df = pd.merge_asof(
-          df,
-          m_hist[["merchant_id", "timestamp", "m_tx_cum", "m_fraud_cum"]].rename(
-               columns={"timestamp": "hist_ts"}
-          ),
-          left_on="ts_minus_lag",
-          right_on="hist_ts",
-          by="merchant_id",
-          direction="backward",
-     )
-
-     past_tx = df["m_tx_cum"].fillna(0)
-     past_fraud = df["m_fraud_cum"].fillna(0)
-     df["merchant_fraud_rate_7d_lag"] = (past_fraud + m * global_prior) / (past_tx + m)
-
-     return df.drop(columns=["ts_minus_lag", "hist_ts", "m_tx_cum", "m_fraud_cum"])
 
 def get_split_boundaries(
           df: pd.DataFrame,
@@ -113,7 +79,6 @@ def build_and_split_data(
           df, train_days=train_days, val_days=val_days, test_days=test_days
      )
      df = add_user_features(df)
-     df = add_merchant_features(df, train_end=train_end)
 
      train_df = df[df["timestamp"] < train_end].copy()
      val_df = df[(df["timestamp"] >= train_end) & (df["timestamp"] < val_end)].copy()
